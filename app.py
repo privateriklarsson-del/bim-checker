@@ -176,42 +176,46 @@ def main():
                 for spec in ids_obj.specifications:
                     applicable = spec.applicable_entities if spec.applicable_entities else []
                     total = len(applicable)
+                    failed = spec.failed_entities if spec.failed_entities else set()
+                    fail_count = len(failed)
+                    pass_count = total - fail_count
 
                     if spec.status is True:
                         st.markdown(f"✅ **{spec.name}** — {total} elements checked, all passed")
                     elif spec.status is False:
-                        # Collect failure details
-                        failures = []
-                        for entity in applicable:
-                            entity_failures = []
-                            for requirement in spec.requirements:
-                                if hasattr(requirement, 'failed_entities') and entity in requirement.failed_entities:
-                                    entity_failures.append(requirement)
-                                elif hasattr(requirement, 'status') and requirement.status is False:
-                                    pass
-
-                            # Alternative: check entity-level
-                            if hasattr(entity, 'is_a'):
-                                pass
-
-                        fail_count = 0
-                        for requirement in spec.requirements:
-                            if hasattr(requirement, 'failed_entities'):
-                                fail_count = max(fail_count, len(requirement.failed_entities))
-
-                        pass_count = total - fail_count if total > fail_count else 0
-
                         with st.expander(f"❌ **{spec.name}** — {fail_count}/{total} elements failed", expanded=False):
-                            # Show failed entities
-                            for requirement in spec.requirements:
-                                if hasattr(requirement, 'failed_entities') and requirement.failed_entities:
-                                    for entity in requirement.failed_entities[:20]:  # Limit display
-                                        entity_info = f"#{entity.id()} ({entity.is_a()})"
-                                        if hasattr(entity, 'Name') and entity.Name:
-                                            entity_info += f" — {entity.Name}"
-                                        st.text(f"  • {entity_info}")
-                                    if len(requirement.failed_entities) > 20:
-                                        st.text(f"  ... and {len(requirement.failed_entities) - 20} more")
+                            # Collect all failure reasons per entity
+                            failure_details = {}
+                            for req in spec.requirements:
+                                if hasattr(req, 'failures') and req.failures:
+                                    for failure in req.failures:
+                                        eid = failure.element.id()
+                                        if eid not in failure_details:
+                                            entity = failure.element
+                                            entity_name = entity.Name if hasattr(entity, 'Name') and entity.Name else "—"
+                                            failure_details[eid] = {
+                                                "type": entity.is_a(),
+                                                "name": entity_name,
+                                                "reasons": [],
+                                            }
+                                        failure_details[eid]["reasons"].append(failure.reason)
+
+                            # Display as table
+                            if failure_details:
+                                rows = []
+                                for eid, info in sorted(failure_details.items()):
+                                    rows.append({
+                                        "ID": f"#{eid}",
+                                        "Type": info["type"],
+                                        "Name": info["name"],
+                                        "Reason": "; ".join(info["reasons"][:3]),
+                                    })
+                                st.dataframe(rows, use_container_width=True, hide_index=True)
+                            else:
+                                st.text("No detailed failure info available.")
+
+                            if pass_count > 0:
+                                st.markdown(f"*{pass_count} elements passed this check.*")
                     else:
                         st.markdown(f"⚠️ **{spec.name}** — No applicable elements found")
 
