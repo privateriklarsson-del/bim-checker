@@ -189,16 +189,24 @@ def main():
                             for req in spec.requirements:
                                 if hasattr(req, 'failures') and req.failures:
                                     for failure in req.failures:
-                                        eid = failure.element.id()
+                                        # Handle both dict and object access
+                                        if isinstance(failure, dict):
+                                            entity = failure.get("element") or failure.get("entity")
+                                            reason = failure.get("reason", "Unknown")
+                                        else:
+                                            entity = getattr(failure, 'element', None) or getattr(failure, 'entity', None)
+                                            reason = getattr(failure, 'reason', "Unknown")
+                                        if entity is None:
+                                            continue
+                                        eid = entity.id()
                                         if eid not in failure_details:
-                                            entity = failure.element
                                             entity_name = entity.Name if hasattr(entity, 'Name') and entity.Name else "—"
                                             failure_details[eid] = {
                                                 "type": entity.is_a(),
                                                 "name": entity_name,
                                                 "reasons": [],
                                             }
-                                        failure_details[eid]["reasons"].append(failure.reason)
+                                        failure_details[eid]["reasons"].append(str(reason))
 
                             # Display as table
                             if failure_details:
@@ -212,7 +220,19 @@ def main():
                                     })
                                 st.dataframe(rows, use_container_width=True, hide_index=True)
                             else:
-                                st.text("No detailed failure info available.")
+                                # Fallback: show failed entities from spec level
+                                if failed:
+                                    for entity in list(failed)[:20]:
+                                        entity_name = entity.Name if hasattr(entity, 'Name') and entity.Name else "—"
+                                        st.text(f"  • #{entity.id()} ({entity.is_a()}) — {entity_name}")
+                                    # Debug: show failure structure
+                                    for req in spec.requirements:
+                                        if hasattr(req, 'failures') and req.failures:
+                                            sample = req.failures[0]
+                                            st.caption(f"Debug — failure type: {type(sample).__name__}, keys/attrs: {dir(sample) if not isinstance(sample, dict) else list(sample.keys())}")
+                                            break
+                                else:
+                                    st.text("No detailed failure info available.")
 
                             if pass_count > 0:
                                 st.markdown(f"*{pass_count} elements passed this check.*")
