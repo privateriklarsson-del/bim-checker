@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ids xmlns="http://standards.buildingsmart.org/IDS" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd">
+  <info>
+    <title>TEST - Only IWS-25 walls</title>
+    <description>Test rule: all interior walls must have TypeID = IWS-25.</description>
+    <author>bim@jm.se</author>
+    <date>2025-01-15</date>
+    <purpose>Testing</purpose>
+  </info>
+  <specifications>
+    <specification name="Interior walls TypeID must be IWS-25" ifcVersion="IFC2X3 IFC4">
+      <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity>
+          <name>
+            <simpleValue>IFCWALL</simpleValue>
+          </name>
+        </entity>
+        <property dataType="IFCLABEL">
+          <propertySet>
+            <simpleValue>JM</simpleValue>
+          </propertySet>
+          <baseName>
+            <simpleValue>ClassCodeBuildingElement</simpleValue>
+          </baseName>
+          <value>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="43.CB/41"/>
+              <xs:enumeration value="43.CB/42"/>
+            </xs:restriction>
+          </value>
+        </property>
+      </applicability>
+      <requirements>
+        <property dataType="IFCLABEL" cardinality="required" instructions="TypeID must be exactly IWS-25">
+          <propertySet>
+            <simpleValue>JM</simpleValue>
+          </propertySet>
+          <baseName>
+            <simpleValue>TypeID</simpleValue>
+          </baseName>
+          <value>
+            <simpleValue>IWS-25</simpleValue>
+          </value>
+        </property>
+      </requirements>
+    </specification>
+  </specifications>
+</ids>
