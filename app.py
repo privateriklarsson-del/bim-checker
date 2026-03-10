@@ -1,5 +1,6 @@
 import streamlit as st
 import ifcopenshell
+import ifcopenshell.util.element
 import ifctester
 import ifctester.ids
 import tempfile
@@ -11,6 +12,15 @@ from datetime import datetime
 # --- Config ---
 IDS_FOLDER = Path("ids_files")
 APP_TITLE = "JM BIM Checker"
+
+# --- TypeID ↔ ClassCode mapping ---
+# Which ClassCodeBuildingElement each TypeID prefix should have
+TYPEID_CLASSCODE_MAP = {
+    "IWS": "43.CB/41",  # Interior walls
+    # Add more mappings here as needed, e.g.:
+    # "YWS": "43.CB/11",  # Exterior walls
+    # "F": "43.DC/41",    # Windows
+}
 
 # --- Simple auth ---
 def check_password():
@@ -245,6 +255,53 @@ def main():
                         "status": "PASS" if spec.status is True else ("FAIL" if spec.status is False else "N/A"),
                         "elements_checked": total,
                     })
+
+            # --- Custom cross-validation: TypeID ↔ ClassCode ---
+            st.subheader("📋 Cross-validation: TypeID ↔ ClassCode")
+            mismatches = []
+            walls = list(ifc_file.by_type("IfcWall"))
+            for wall in walls:
+                psets = ifcopenshell.util.element.get_psets(wall)
+                jm = psets.get("JM", {})
+                type_id = jm.get("TypeID", "")
+                class_code = jm.get("ClassCodeBuildingElement", "")
+                if not type_id or not class_code:
+                    continue
+                # Find expected class code from prefix
+                prefix = ""
+                for p in TYPEID_CLASSCODE_MAP:
+                    if type_id.startswith(p):
+                        prefix = p
+                        break
+                if prefix:
+                    expected = TYPEID_CLASSCODE_MAP[prefix]
+                    if class_code != expected:
+                        wall_name = wall.Name if hasattr(wall, 'Name') and wall.Name else "—"
+                        mismatches.append({
+                            "ID": f"#{wall.id()}",
+                            "Name": wall_name,
+                            "TypeID": type_id,
+                            "ClassCode": class_code,
+                            "Expected": expected,
+                        })
+
+            if mismatches:
+                with st.expander(f"❌ **TypeID ↔ ClassCode mismatch** — {len(mismatches)} walls", expanded=False):
+                    st.dataframe(mismatches, use_container_width=True, hide_index=True)
+                all_results.append({
+                    "rule_set": "Cross-validation",
+                    "rule": "TypeID ↔ ClassCode match",
+                    "status": "FAIL",
+                    "elements_checked": len(mismatches),
+                })
+            else:
+                st.markdown(f"✅ **TypeID ↔ ClassCode match** — all walls consistent")
+                all_results.append({
+                    "rule_set": "Cross-validation",
+                    "rule": "TypeID ↔ ClassCode match",
+                    "status": "PASS",
+                    "elements_checked": len([w for w in walls if ifcopenshell.util.element.get_psets(w).get("JM", {}).get("TypeID")]),
+                })
 
             # --- Summary ---
             st.markdown("---")
