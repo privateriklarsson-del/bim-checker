@@ -1,14 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ids xmlns="http://standards.buildingsmart.org/IDS" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd">
   <info>
-    <title>A - JM TypeID Validation</title>
-    <description>Checks that interior walls (43.CB/41, 43.CB/42) have a valid JM TypeID from the approved list.</description>
+    <title>A - JM TypeID Walls</title>
+    <description>Checks all walls for valid JM TypeID and TypeName.</description>
     <author>bim@jm.se</author>
     <date>2025-01-15</date>
     <purpose>JM type classification</purpose>
   </info>
   <specifications>
-    <specification name="Interior walls must have approved JM TypeID" ifcVersion="IFC2X3 IFC4">
+    <specification name="All walls must have JM TypeID" ifcVersion="IFC2X3 IFC4">
+      <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity>
+          <name>
+            <simpleValue>IFCWALL</simpleValue>
+          </name>
+        </entity>
+      </applicability>
+      <requirements>
+        <property dataType="IFCLABEL" cardinality="required" instructions="Every wall must have a TypeID in the JM PropertySet">
+          <propertySet>
+            <simpleValue>JM</simpleValue>
+          </propertySet>
+          <baseName>
+            <simpleValue>TypeID</simpleValue>
+          </baseName>
+        </property>
+      </requirements>
+    </specification>
+    <specification name="All walls must have JM ClassCodeBuildingElement" ifcVersion="IFC2X3 IFC4">
+      <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity>
+          <name>
+            <simpleValue>IFCWALL</simpleValue>
+          </name>
+        </entity>
+      </applicability>
+      <requirements>
+        <property dataType="IFCLABEL" cardinality="required" instructions="Every wall must have ClassCodeBuildingElement in JM pset">
+          <propertySet>
+            <simpleValue>JM</simpleValue>
+          </propertySet>
+          <baseName>
+            <simpleValue>ClassCodeBuildingElement</simpleValue>
+          </baseName>
+        </property>
+      </requirements>
+    </specification>
+    <specification name="All walls must have JM TypeName" ifcVersion="IFC2X3 IFC4">
+      <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity>
+          <name>
+            <simpleValue>IFCWALL</simpleValue>
+          </name>
+        </entity>
+      </applicability>
+      <requirements>
+        <property dataType="IFCLABEL" cardinality="required" instructions="Every wall must have TypeName in JM pset">
+          <propertySet>
+            <simpleValue>JM</simpleValue>
+          </propertySet>
+          <baseName>
+            <simpleValue>TypeName</simpleValue>
+          </baseName>
+        </property>
+      </requirements>
+    </specification>
+    <specification name="Wall TypeID must be an approved IWS code" ifcVersion="IFC2X3 IFC4">
       <applicability minOccurs="0" maxOccurs="unbounded">
         <entity>
           <name>
@@ -20,14 +77,8 @@
             <simpleValue>JM</simpleValue>
           </propertySet>
           <baseName>
-            <simpleValue>ClassCodeBuildingElement</simpleValue>
+            <simpleValue>TypeID</simpleValue>
           </baseName>
-          <value>
-            <xs:restriction base="xs:string">
-              <xs:enumeration value="43.CB/41"/>
-              <xs:enumeration value="43.CB/42"/>
-            </xs:restriction>
-          </value>
         </property>
       </applicability>
       <requirements>
@@ -88,39 +139,6 @@
               <xs:enumeration value="IWS-26i"/>
             </xs:restriction>
           </value>
-        </property>
-      </requirements>
-    </specification>
-    <specification name="Interior walls must have JM TypeName" ifcVersion="IFC2X3 IFC4">
-      <applicability minOccurs="0" maxOccurs="unbounded">
-        <entity>
-          <name>
-            <simpleValue>IFCWALL</simpleValue>
-          </name>
-        </entity>
-        <property dataType="IFCLABEL">
-          <propertySet>
-            <simpleValue>JM</simpleValue>
-          </propertySet>
-          <baseName>
-            <simpleValue>ClassCodeBuildingElement</simpleValue>
-          </baseName>
-          <value>
-            <xs:restriction base="xs:string">
-              <xs:enumeration value="43.CB/41"/>
-              <xs:enumeration value="43.CB/42"/>
-            </xs:restriction>
-          </value>
-        </property>
-      </applicability>
-      <requirements>
-        <property dataType="IFCLABEL" cardinality="required" instructions="TypeName must exist in JM pset">
-          <propertySet>
-            <simpleValue>JM</simpleValue>
-          </propertySet>
-          <baseName>
-            <simpleValue>TypeName</simpleValue>
-          </baseName>
         </property>
       </requirements>
     </specification>
