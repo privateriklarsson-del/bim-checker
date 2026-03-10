@@ -20,7 +20,7 @@
             <simpleValue>JM</simpleValue>
           </propertySet>
           <baseName>
-            <simpleValue>ClassCode-BuildingElement</simpleValue>
+            <simpleValue>ClassCodeBuildingElement</simpleValue>
           </baseName>
           <value>
             <xs:restriction base="xs:string">
@@ -58,7 +58,7 @@
             <simpleValue>JM</simpleValue>
           </propertySet>
           <baseName>
-            <simpleValue>ClassCode-BuildingElement</simpleValue>
+            <simpleValue>ClassCodeBuildingElement</simpleValue>
           </baseName>
           <value>
             <xs:restriction base="xs:string">
