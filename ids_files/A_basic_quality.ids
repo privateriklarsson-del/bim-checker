@@ -8,7 +8,7 @@
     <purpose>Model quality assurance</purpose>
   </info>
   <specifications>
-    <specification name="Walls must have Name" ifcVersion="IFC4">
+    <specification name="Walls must have Name" ifcVersion="IFC2X3 IFC4">
       <applicability minOccurs="1" maxOccurs="unbounded">
         <entity>
           <name>
@@ -24,7 +24,7 @@
         </attribute>
       </requirements>
     </specification>
-    <specification name="Doors must have Name" ifcVersion="IFC4">
+    <specification name="Doors must have Name" ifcVersion="IFC2X3 IFC4">
       <applicability minOccurs="1" maxOccurs="unbounded">
         <entity>
           <name>
@@ -40,7 +40,7 @@
         </attribute>
       </requirements>
     </specification>
-    <specification name="Windows must have Name" ifcVersion="IFC4">
+    <specification name="Windows must have Name" ifcVersion="IFC2X3 IFC4">
       <applicability minOccurs="1" maxOccurs="unbounded">
         <entity>
           <name>
@@ -56,7 +56,7 @@
         </attribute>
       </requirements>
     </specification>
-    <specification name="Spaces must have Name" ifcVersion="IFC4">
+    <specification name="Spaces must have Name" ifcVersion="IFC2X3 IFC4">
       <applicability minOccurs="0" maxOccurs="unbounded">
         <entity>
           <name>
@@ -72,7 +72,7 @@
         </attribute>
       </requirements>
     </specification>
-    <specification name="Spaces must have LongName" ifcVersion="IFC4">
+    <specification name="Spaces must have LongName" ifcVersion="IFC2X3 IFC4">
       <applicability minOccurs="0" maxOccurs="unbounded">
         <entity>
           <name>
@@ -88,7 +88,7 @@
         </attribute>
       </requirements>
     </specification>
-    <specification name="Building storeys must have Name" ifcVersion="IFC4">
+    <specification name="Building storeys must have Name" ifcVersion="IFC2X3 IFC4">
       <applicability minOccurs="1" maxOccurs="unbounded">
         <entity>
           <name>
@@ -104,7 +104,7 @@
         </attribute>
       </requirements>
     </specification>
-    <specification name="Slabs must have Name" ifcVersion="IFC4">
+    <specification name="Slabs must have Name" ifcVersion="IFC2X3 IFC4">
       <applicability minOccurs="1" maxOccurs="unbounded">
         <entity>
           <name>
