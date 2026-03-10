@@ -8,7 +8,7 @@
     <purpose>JM type classification</purpose>
   </info>
   <specifications>
-    <specification name="Interior walls must have valid JM TypeID (IWS-pattern)" ifcVersion="IFC4">
+    <specification name="Interior walls must have valid JM TypeID (IWS-pattern)" ifcVersion="IFC2X3 IFC4">
       <applicability minOccurs="0" maxOccurs="unbounded">
         <entity>
           <name>
@@ -46,7 +46,7 @@
         </property>
       </requirements>
     </specification>
-    <specification name="Interior walls must have JM TypeName" ifcVersion="IFC4">
+    <specification name="Interior walls must have JM TypeName" ifcVersion="IFC2X3 IFC4">
       <applicability minOccurs="0" maxOccurs="unbounded">
         <entity>
           <name>
