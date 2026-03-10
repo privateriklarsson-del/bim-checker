@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ids xmlns="http://standards.buildingsmart.org/IDS" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd">
+  <info>
+    <title>A - Architectural Properties</title>
+    <description>Checks that key architectural elements carry required properties for downstream processes (energy, fire, quantity takeoff).</description>
+    <author>JM BIM Team</author>
+    <date>2025-01-15</date>
+    <purpose>Property completeness</purpose>
+  </info>
+  <specifications>
+    <specification name="Walls must have FireRating" ifcVersion="IFC4" minOccurs="0" maxOccurs="unbounded">
+      <applicability>
+        <entity>
+          <n>
+            <simpleValue>IFCWALL</simpleValue>
+          </n>
+        </entity>
+      </applicability>
+      <requirements>
+        <property dataType="IFCLABEL" cardinality="required">
+          <propertySet>
+            <simpleValue>Pset_WallCommon</simpleValue>
+          </propertySet>
+          <baseName>
+            <simpleValue>FireRating</simpleValue>
+          </baseName>
+        </property>
+      </requirements>
+    </specification>
+    <specification name="Walls must have IsExternal" ifcVersion="IFC4" minOccurs="0" maxOccurs="unbounded">
+      <applicability>
+        <entity>
+          <n>
+            <simpleValue>IFCWALL</simpleValue>
+          </n>
+        </entity>
+      </applicability>
+      <requirements>
+        <property dataType="IFCBOOLEAN" cardinality="required">
+          <propertySet>
+            <simpleValue>Pset_WallCommon</simpleValue>
+          </propertySet>
+          <baseName>
+            <simpleValue>IsExternal</simpleValue>
+          </baseName>
+        </property>
+      </requirements>
+    </specification>
+    <specification name="Doors must have FireRating" ifcVersion="IFC4" minOccurs="0" maxOccurs="unbounded">
+      <applicability>
+        <entity>
+          <n>
+            <simpleValue>IFCDOOR</simpleValue>
+          </n>
+        </entity>
+      </applicability>
+      <requirements>
+        <property dataType="IFCLABEL" cardinality="required">
+          <propertySet>
+            <simpleValue>Pset_DoorCommon</simpleValue>
+          </propertySet>
+          <baseName>
+            <simpleValue>FireRating</simpleValue>
+          </baseName>
+        </property>
+      </requirements>
+    </specification>
+    <specification name="Doors must have IsExternal" ifcVersion="IFC4" minOccurs="0" maxOccurs="unbounded">
+      <applicability>
+        <entity>
+          <n>
+            <simpleValue>IFCDOOR</simpleValue>
+          </n>
+        </entity>
+      </applicability>
+      <requirements>
+        <property dataType="IFCBOOLEAN" cardinality="required">
+          <propertySet>
+            <simpleValue>Pset_DoorCommon</simpleValue>
+          </propertySet>
+          <baseName>
+            <simpleValue>IsExternal</simpleValue>
+          </baseName>
+        </property>
+      </requirements>
+    </specification>
+    <specification name="Spaces must have area in BaseQuantities" ifcVersion="IFC4" minOccurs="0" maxOccurs="unbounded">
+      <applicability>
+        <entity>
+          <n>
+            <simpleValue>IFCSPACE</simpleValue>
+          </n>
+        </entity>
+      </applicability>
+      <requirements>
+        <property dataType="IFCAREAMEASURE" cardinality="required">
+          <propertySet>
+            <simpleValue>Qto_SpaceBaseQuantities</simpleValue>
+          </propertySet>
+          <baseName>
+            <simpleValue>NetFloorArea</simpleValue>
+          </baseName>
+        </property>
+      </requirements>
+    </specification>
+  </specifications>
+</ids>
