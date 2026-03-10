@@ -8,7 +8,7 @@
     <purpose>Property completeness</purpose>
   </info>
   <specifications>
-    <specification name="Walls must have FireRating" ifcVersion="IFC4">
+    <specification name="Walls must have FireRating" ifcVersion="IFC2X3 IFC4">
       <applicability minOccurs="0" maxOccurs="unbounded">
         <entity>
           <name>
@@ -27,7 +27,7 @@
         </property>
       </requirements>
     </specification>
-    <specification name="Walls must have IsExternal" ifcVersion="IFC4">
+    <specification name="Walls must have IsExternal" ifcVersion="IFC2X3 IFC4">
       <applicability minOccurs="0" maxOccurs="unbounded">
         <entity>
           <name>
@@ -46,7 +46,7 @@
         </property>
       </requirements>
     </specification>
-    <specification name="Doors must have FireRating" ifcVersion="IFC4">
+    <specification name="Doors must have FireRating" ifcVersion="IFC2X3 IFC4">
       <applicability minOccurs="0" maxOccurs="unbounded">
         <entity>
           <name>
@@ -65,7 +65,7 @@
         </property>
       </requirements>
     </specification>
-    <specification name="Doors must have IsExternal" ifcVersion="IFC4">
+    <specification name="Doors must have IsExternal" ifcVersion="IFC2X3 IFC4">
       <applicability minOccurs="0" maxOccurs="unbounded">
         <entity>
           <name>
@@ -84,7 +84,7 @@
         </property>
       </requirements>
     </specification>
-    <specification name="Spaces must have NetFloorArea" ifcVersion="IFC4">
+    <specification name="Spaces must have NetFloorArea" ifcVersion="IFC2X3 IFC4">
       <applicability minOccurs="0" maxOccurs="unbounded">
         <entity>
           <name>
