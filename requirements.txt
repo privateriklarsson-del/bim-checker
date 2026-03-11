@@ -1,3 +1,5 @@
 streamlit>=1.30.0
 ifcopenshell>=0.7.0
 ifctester>=0.7.0
+bcf-client>=0.7.0
+numpy
