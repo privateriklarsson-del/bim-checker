@@ -6,8 +6,10 @@ import ifctester.ids
 import tempfile
 import os
 import json
+import numpy as np
 from pathlib import Path
 from datetime import datetime
+from bcf.v2.bcfxml import BcfXml
 
 # --- Config ---
 IDS_FOLDER = Path("ids_files")
@@ -173,6 +175,7 @@ def main():
 
             # Run each selected IDS
             all_results = []
+            bcf_issues = []  # Collect issues for BCF export: {title, description, guids[]}
             for name, data in selected_ids:
                 # Reload IDS fresh for each run (to reset state)
                 ids_obj = ifctester.ids.open(str(data["path"]))
@@ -246,6 +249,20 @@ def main():
 
                             if pass_count > 0:
                                 st.markdown(f"*{pass_count} elements passed this check.*")
+
+                        # Collect BCF issues from failed entities
+                        if spec.status is False and failed:
+                            guids = []
+                            for entity in failed:
+                                guid = getattr(entity, 'GlobalId', None)
+                                if guid:
+                                    guids.append(guid)
+                            if guids:
+                                bcf_issues.append({
+                                    "title": f"{name}: {spec.name}",
+                                    "description": f"{fail_count}/{total} elements failed. Rule set: {name}",
+                                    "guids": guids,
+                                })
                     else:
                         st.markdown(f"⚠️ **{spec.name}** — No applicable elements found")
 
@@ -277,23 +294,34 @@ def main():
                     expected = TYPEID_CLASSCODE_MAP[prefix]
                     if class_code != expected:
                         wall_name = wall.Name if hasattr(wall, 'Name') and wall.Name else "—"
+                        wall_guid = getattr(wall, 'GlobalId', None)
                         mismatches.append({
                             "ID": f"#{wall.id()}",
                             "Name": wall_name,
                             "TypeID": type_id,
                             "ClassCode": class_code,
                             "Expected": expected,
+                            "_guid": wall_guid,
                         })
 
             if mismatches:
                 with st.expander(f"❌ **TypeID ↔ ClassCode mismatch** — {len(mismatches)} walls", expanded=False):
-                    st.dataframe(mismatches, use_container_width=True, hide_index=True)
+                    display_rows = [{k: v for k, v in m.items() if not k.startswith("_")} for m in mismatches]
+                    st.dataframe(display_rows, use_container_width=True, hide_index=True)
                 all_results.append({
                     "rule_set": "Cross-validation",
                     "rule": "TypeID ↔ ClassCode match",
                     "status": "FAIL",
                     "elements_checked": len(mismatches),
                 })
+                # Collect for BCF
+                mismatch_guids = [m["_guid"] for m in mismatches if m["_guid"]]
+                if mismatch_guids:
+                    bcf_issues.append({
+                        "title": "Cross-validation: TypeID ↔ ClassCode mismatch",
+                        "description": f"{len(mismatches)} walls have TypeID that doesn't match their ClassCodeBuildingElement",
+                        "guids": mismatch_guids,
+                    })
             else:
                 st.markdown(f"✅ **TypeID ↔ ClassCode match** — all walls consistent")
                 all_results.append({
@@ -320,6 +348,7 @@ def main():
             st.session_state.last_results = all_results
             st.session_state.last_filename = uploaded_file.name
             st.session_state.last_timestamp = datetime.now().isoformat()
+            st.session_state.last_bcf_issues = bcf_issues
 
         except Exception as e:
             st.error(f"Error during validation: {str(e)}")
@@ -330,17 +359,65 @@ def main():
     # --- Export ---
     if "last_results" in st.session_state:
         st.markdown("---")
-        export_data = {
-            "file": st.session_state.last_filename,
-            "timestamp": st.session_state.last_timestamp,
-            "results": st.session_state.last_results,
-        }
-        st.download_button(
-            "📥 Download results (JSON)",
-            data=json.dumps(export_data, indent=2, ensure_ascii=False),
-            file_name=f"bim_check_{st.session_state.last_filename}_{datetime.now().strftime('%Y%m%d_%H%M')}.json",
-            mime="application/json",
-        )
+        st.subheader("📥 Export Results")
+
+        col_bcf, col_json = st.columns(2)
+
+        # BCF Export
+        with col_bcf:
+            bcf_issues = st.session_state.get("last_bcf_issues", [])
+            if bcf_issues:
+                try:
+                    bcf_file = BcfXml.create_new("JM BIM Check")
+                    for issue in bcf_issues:
+                        topic = bcf_file.add_topic(
+                            title=issue["title"],
+                            description=issue["description"],
+                            author="bim@jm.se",
+                            topic_type="Error",
+                            topic_status="Open",
+                        )
+                        # Add viewpoint with failing element GUIDs
+                        if issue["guids"]:
+                            try:
+                                topic.add_viewpoint_from_point_and_guids(
+                                    np.array([0.0, 0.0, 0.0]),
+                                    *issue["guids"]
+                                )
+                            except Exception:
+                                pass  # Viewpoint is optional, topic still works
+
+                    bcf_path = tempfile.mktemp(suffix=".bcf")
+                    bcf_file.save(bcf_path)
+                    with open(bcf_path, "rb") as f:
+                        bcf_bytes = f.read()
+                    os.unlink(bcf_path)
+
+                    st.download_button(
+                        "📋 Download BCF (for Solibri/Revit)",
+                        data=bcf_bytes,
+                        file_name=f"bim_check_{st.session_state.last_filename}_{datetime.now().strftime('%Y%m%d_%H%M')}.bcf",
+                        mime="application/octet-stream",
+                    )
+                    st.caption(f"{len(bcf_issues)} issues with element selection")
+                except Exception as e:
+                    st.error(f"BCF generation failed: {e}")
+            else:
+                st.info("No failures — no BCF to export.")
+
+        # JSON Export
+        with col_json:
+            export_data = {
+                "file": st.session_state.last_filename,
+                "timestamp": st.session_state.last_timestamp,
+                "results": st.session_state.last_results,
+            }
+            st.download_button(
+                "📄 Download JSON",
+                data=json.dumps(export_data, indent=2, ensure_ascii=False),
+                file_name=f"bim_check_{st.session_state.last_filename}_{datetime.now().strftime('%Y%m%d_%H%M')}.json",
+                mime="application/json",
+            )
 
 
 if __name__ == "__main__":
