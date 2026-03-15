@@ -143,6 +143,7 @@ def main():
         return
 
     uploaded_file = st.file_uploader("Upload IFC file", type=["ifc"])
+    st.caption("📌 File naming convention: **D-PP-V-NN.ifc** — e.g. `A-40-V-02.ifc` (Discipline-Project-Version-Part)")
 
     st.subheader("Select rule sets")
     selected_ids = []
