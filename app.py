@@ -379,6 +379,212 @@ def main():
                     "elements_checked": len([w for w in walls if ifcopenshell.util.element.get_psets(w).get("JM", {}).get("TypeID")]),
                 })
 
+            # --- Tier 2: Advanced Checks ---
+            st.subheader("\U0001F50D Tier 2 \u2014 Advanced Checks")
+
+            def get_pset_value(element, pset_name, prop_name):
+                psets = ifcopenshell.util.element.get_psets(element)
+                return psets.get(pset_name, {}).get(prop_name)
+
+            # Check 1: Storey Heights
+            storeys = ifc_file.by_type("IfcBuildingStorey")
+            if len(storeys) >= 2:
+                sorted_storeys = sorted(storeys, key=lambda s: s.Elevation or 0)
+                bad_heights = []
+                for i in range(1, len(sorted_storeys)):
+                    lower = sorted_storeys[i - 1]
+                    upper = sorted_storeys[i]
+                    delta = (upper.Elevation or 0) - (lower.Elevation or 0)
+                    if delta < 2.4 or delta > 5.0:
+                        bad_heights.append({
+                            "From": lower.Name or "\u2014",
+                            "To": upper.Name or "\u2014",
+                            "Height": f"{delta:.1f}m",
+                            "Expected": "2.4\u20135.0m",
+                            "_guids": [lower.GlobalId, upper.GlobalId],
+                        })
+                if bad_heights:
+                    with st.expander(f"\u274C **Storey heights** \u2014 {len(bad_heights)} unusual", expanded=False):
+                        st.dataframe([{k: v for k, v in h.items() if not k.startswith("_")} for h in bad_heights], use_container_width=True, hide_index=True)
+                    guids = [g for h in bad_heights for g in h["_guids"] if g]
+                    if guids:
+                        bcf_issues.append({"title": "Unusual storey heights", "description": f"{len(bad_heights)} storey pairs with unexpected height", "guids": guids})
+                    all_results.append({"rule_set": "Advanced", "rule": "Storey heights", "status": "FAIL", "elements_checked": len(sorted_storeys)})
+                else:
+                    st.markdown(f"\u2705 **Storey heights** \u2014 all {len(sorted_storeys)} storeys within 2.4\u20135.0m")
+                    all_results.append({"rule_set": "Advanced", "rule": "Storey heights", "status": "PASS", "elements_checked": len(sorted_storeys)})
+
+            # Check 2: Unassigned elements
+            unassigned = []
+            for entity_type in ["IfcWall", "IfcDoor", "IfcWindow", "IfcSlab"]:
+                for element in ifc_file.by_type(entity_type):
+                    container = ifcopenshell.util.element.get_container(element)
+                    if container is None:
+                        unassigned.append(element)
+            if unassigned:
+                type_counts = {}
+                for e in unassigned:
+                    t = e.is_a()
+                    type_counts[t] = type_counts.get(t, 0) + 1
+                summary_text = ", ".join(f"{c}x {t}" for t, c in type_counts.items())
+                with st.expander(f"\u274C **Unassigned elements** \u2014 {len(unassigned)} without storey", expanded=False):
+                    st.text(summary_text)
+                    rows = []
+                    for e in unassigned[:30]:
+                        rows.append({"ID": f"#{e.id()}", "Type": e.is_a(), "Name": getattr(e, 'Name', None) or "\u2014"})
+                    st.dataframe(rows, use_container_width=True, hide_index=True)
+                guids = [e.GlobalId for e in unassigned if e.GlobalId][:50]
+                if guids:
+                    bcf_issues.append({"title": f"{len(unassigned)} elements not assigned to storey", "description": summary_text, "guids": guids})
+                all_results.append({"rule_set": "Advanced", "rule": "Elements assigned to storey", "status": "FAIL", "elements_checked": len(unassigned)})
+            else:
+                st.markdown("\u2705 **Element assignment** \u2014 all elements assigned to a storey")
+                all_results.append({"rule_set": "Advanced", "rule": "Elements assigned to storey", "status": "PASS", "elements_checked": 0})
+
+            # Check 3: Spaces exist
+            spaces = ifc_file.by_type("IfcSpace")
+            if len(spaces) == 0:
+                st.markdown("\u274C **Spaces/Rooms** \u2014 no IfcSpace found (critical for IDA ICE)")
+                bcf_issues.append({"title": "No rooms/spaces in model", "description": "Zero IfcSpace elements. Critical for energy simulation and area calculations.", "guids": []})
+                all_results.append({"rule_set": "Advanced", "rule": "Spaces exist", "status": "FAIL", "elements_checked": 0})
+            else:
+                no_area = []
+                unnamed = []
+                for space in spaces:
+                    area = get_pset_value(space, "Qto_SpaceBaseQuantities", "NetFloorArea")
+                    if area is None or area <= 0:
+                        no_area.append(space)
+                    if not space.Name or space.Name.strip() == "":
+                        unnamed.append(space)
+
+                space_issues = []
+                if no_area:
+                    space_issues.append(f"{len(no_area)} without NetFloorArea")
+                if unnamed:
+                    space_issues.append(f"{len(unnamed)} without Name")
+
+                if space_issues:
+                    with st.expander(f"\u274C **Spaces** \u2014 {len(spaces)} found, issues: {', '.join(space_issues)}", expanded=False):
+                        if no_area:
+                            st.markdown(f"**Missing NetFloorArea:** {len(no_area)} spaces")
+                            rows = [{"ID": f"#{s.id()}", "Name": s.Name or "\u2014", "LongName": getattr(s, 'LongName', None) or "\u2014"} for s in no_area[:20]]
+                            st.dataframe(rows, use_container_width=True, hide_index=True)
+                        if unnamed:
+                            st.markdown(f"**Missing Name:** {len(unnamed)} spaces")
+                    guids = [s.GlobalId for s in (no_area + unnamed) if s.GlobalId][:30]
+                    if guids:
+                        bcf_issues.append({"title": f"Space issues: {', '.join(space_issues)}", "description": f"{len(spaces)} spaces total", "guids": guids})
+                    all_results.append({"rule_set": "Advanced", "rule": "Space completeness", "status": "FAIL", "elements_checked": len(spaces)})
+                else:
+                    st.markdown(f"\u2705 **Spaces** \u2014 {len(spaces)} rooms, all with Name and NetFloorArea")
+                    all_results.append({"rule_set": "Advanced", "rule": "Space completeness", "status": "PASS", "elements_checked": len(spaces)})
+
+            # Check 4: Windows exist and are hosted
+            windows = ifc_file.by_type("IfcWindow")
+            if len(windows) == 0:
+                st.markdown("\u274C **Windows** \u2014 no IfcWindow found (likely export error)")
+                bcf_issues.append({"title": "No windows in model", "description": "Zero IfcWindow elements. Check Revit IFC export settings.", "guids": []})
+                all_results.append({"rule_set": "Advanced", "rule": "Windows present and hosted", "status": "FAIL", "elements_checked": 0})
+            else:
+                orphan_windows = [w for w in windows if not (hasattr(w, "FillsVoids") and w.FillsVoids)]
+                if orphan_windows:
+                    with st.expander(f"\u274C **Windows** \u2014 {len(orphan_windows)}/{len(windows)} not hosted in wall", expanded=False):
+                        rows = [{"ID": f"#{w.id()}", "Name": getattr(w, 'Name', None) or "\u2014"} for w in orphan_windows[:20]]
+                        st.dataframe(rows, use_container_width=True, hide_index=True)
+                    guids = [w.GlobalId for w in orphan_windows if w.GlobalId][:30]
+                    if guids:
+                        bcf_issues.append({"title": f"{len(orphan_windows)} windows without host wall", "description": "Missing IfcRelFillsElement", "guids": guids})
+                    all_results.append({"rule_set": "Advanced", "rule": "Windows present and hosted", "status": "FAIL", "elements_checked": len(windows)})
+                else:
+                    st.markdown(f"\u2705 **Windows** \u2014 {len(windows)} windows, all hosted in walls")
+                    all_results.append({"rule_set": "Advanced", "rule": "Windows present and hosted", "status": "PASS", "elements_checked": len(windows)})
+
+            # Check 5: Doors hosted
+            doors = ifc_file.by_type("IfcDoor")
+            if doors:
+                orphan_doors = [d for d in doors if not (hasattr(d, "FillsVoids") and d.FillsVoids)]
+                if orphan_doors:
+                    with st.expander(f"\u26A0\uFE0F **Doors** \u2014 {len(orphan_doors)}/{len(doors)} not hosted in wall", expanded=False):
+                        rows = [{"ID": f"#{d.id()}", "Name": getattr(d, 'Name', None) or "\u2014"} for d in orphan_doors[:20]]
+                        st.dataframe(rows, use_container_width=True, hide_index=True)
+                    guids = [d.GlobalId for d in orphan_doors if d.GlobalId][:30]
+                    if guids:
+                        bcf_issues.append({"title": f"{len(orphan_doors)} doors without host wall", "description": "Missing IfcRelFillsElement", "guids": guids})
+                    all_results.append({"rule_set": "Advanced", "rule": "Doors hosted", "status": "FAIL", "elements_checked": len(doors)})
+                else:
+                    st.markdown(f"\u2705 **Doors** \u2014 {len(doors)} doors, all hosted in walls")
+                    all_results.append({"rule_set": "Advanced", "rule": "Doors hosted", "status": "PASS", "elements_checked": len(doors)})
+
+            # Check 6: Site coordinates
+            sites = ifc_file.by_type("IfcSite")
+            for site in sites:
+                site_problems = []
+                if not site.RefLatitude:
+                    site_problems.append("RefLatitude missing")
+                if not site.RefLongitude:
+                    site_problems.append("RefLongitude missing")
+                if site.RefElevation is None:
+                    site_problems.append("RefElevation missing")
+                if site.RefLatitude:
+                    lat = site.RefLatitude[0] if site.RefLatitude else 0
+                    if lat < 55 or lat > 69:
+                        site_problems.append(f"Latitude {lat}\u00b0 outside Sweden (55-69\u00b0N)")
+                if site.RefLongitude:
+                    lon = site.RefLongitude[0] if site.RefLongitude else 0
+                    if lon < 11 or lon > 24:
+                        site_problems.append(f"Longitude {lon}\u00b0 outside Sweden (11-24\u00b0E)")
+
+                if site_problems:
+                    st.markdown(f"\u26A0\uFE0F **Site coordinates** \u2014 {'; '.join(site_problems)}")
+                    bcf_issues.append({"title": "Site coordinates issue", "description": "; ".join(site_problems), "guids": [site.GlobalId] if site.GlobalId else []})
+                    all_results.append({"rule_set": "Advanced", "rule": "Site coordinates", "status": "FAIL", "elements_checked": 1})
+                else:
+                    st.markdown(f"\u2705 **Site coordinates** \u2014 location set within Sweden")
+                    all_results.append({"rule_set": "Advanced", "rule": "Site coordinates", "status": "PASS", "elements_checked": 1})
+
+            # Check 7: Floor type in bathrooms
+            bathroom_keywords = ["badrum", "bad", "wc", "toalett", "dusch"]
+            expected_floor_type = "14"
+            bathroom_floor_issues = []
+            for space in spaces:
+                space_name = ((space.Name or "") + " " + (getattr(space, 'LongName', None) or "")).lower()
+                if not any(kw in space_name for kw in bathroom_keywords):
+                    continue
+                contained_slabs = []
+                for rel in getattr(space, "ContainsElements", []):
+                    for el in rel.RelatedElements:
+                        if el.is_a("IfcSlab"):
+                            contained_slabs.append(el)
+                for rel in getattr(space, "BoundedBy", []):
+                    el = rel.RelatedBuildingElement
+                    if el and el.is_a("IfcSlab") and el not in contained_slabs:
+                        contained_slabs.append(el)
+                for slab in contained_slabs:
+                    type_id = get_pset_value(slab, "JM", "TypeID") or ""
+                    if type_id and type_id != expected_floor_type:
+                        bathroom_floor_issues.append({
+                            "Space": space.Name or "\u2014",
+                            "Slab": getattr(slab, 'Name', None) or "\u2014",
+                            "TypeID": type_id,
+                            "Expected": expected_floor_type,
+                            "_guids": [g for g in [slab.GlobalId, space.GlobalId] if g],
+                        })
+
+            if bathroom_floor_issues:
+                with st.expander(f"\u274C **Bathroom floor type** \u2014 {len(bathroom_floor_issues)} wrong", expanded=False):
+                    st.dataframe([{k: v for k, v in i.items() if not k.startswith("_")} for i in bathroom_floor_issues], use_container_width=True, hide_index=True)
+                guids = [g for i in bathroom_floor_issues for g in i["_guids"]]
+                if guids:
+                    bcf_issues.append({"title": f"{len(bathroom_floor_issues)} bathroom floors with wrong TypeID", "description": f"Expected TypeID {expected_floor_type}", "guids": guids})
+                all_results.append({"rule_set": "Advanced", "rule": "Bathroom floor type", "status": "FAIL", "elements_checked": len(bathroom_floor_issues)})
+            else:
+                checked_bathrooms = sum(1 for s in spaces if any(kw in ((s.Name or "") + " " + (getattr(s, 'LongName', None) or "")).lower() for kw in bathroom_keywords))
+                if checked_bathrooms > 0:
+                    st.markdown(f"\u2705 **Bathroom floor type** \u2014 {checked_bathrooms} bathrooms checked")
+                else:
+                    st.markdown(f"\u26A0\uFE0F **Bathroom floor type** \u2014 no bathrooms found to check")
+                all_results.append({"rule_set": "Advanced", "rule": "Bathroom floor type", "status": "PASS" if checked_bathrooms > 0 else "N/A", "elements_checked": checked_bathrooms})
+
             # --- Summary ---
             st.markdown("---")
             st.subheader("\U0001F4CA Summary")
