@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ids xmlns="http://standards.buildingsmart.org/IDS" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd">
+  <info>
+    <title>A - JM TypeID Doors</title>
+    <description>Checks all doors for valid JM TypeID.</description>
+    <author>bim@jm.se</author>
+    <date>2026-04-09</date>
+    <purpose>JM type classification</purpose>
+  </info>
+  <specifications>
+    <specification name="All doors must have JM TypeID" ifcVersion="IFC2X3 IFC4">
+      <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity>
+          <name>
+            <simpleValue>IFCDOOR</simpleValue>
+          </name>
+        </entity>
+      </applicability>
+      <requirements>
+        <property dataType="IFCLABEL" cardinality="required" instructions="Every door must have a TypeID in the JM PropertySet">
+          <propertySet>
+            <simpleValue>JM</simpleValue>
+          </propertySet>
+          <baseName>
+            <simpleValue>TypeID</simpleValue>
+          </baseName>
+        </property>
+      </requirements>
+    </specification>
+    <specification name="Door TypeID must be an approved code" ifcVersion="IFC2X3 IFC4">
+      <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity>
+          <name>
+            <simpleValue>IFCDOOR</simpleValue>
+          </name>
+        </entity>
+        <property dataType="IFCLABEL">
+          <propertySet>
+            <simpleValue>JM</simpleValue>
+          </propertySet>
+          <baseName>
+            <simpleValue>TypeID</simpleValue>
+          </baseName>
+        </property>
+      </applicability>
+      <requirements>
+        <property dataType="IFCLABEL" cardinality="required" instructions="TypeID must be one of the approved codes">
+          <propertySet>
+            <simpleValue>JM</simpleValue>
+          </propertySet>
+          <baseName>
+            <simpleValue>TypeID</simpleValue>
+          </baseName>
+          <value>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="BGV2"/>
+              <xs:enumeration value="FD-D"/>
+              <xs:enumeration value="FD-DD"/>
+              <xs:pattern value="D9\-[0-9]+"/>
+              <xs:pattern value="FD10\-[0-9]+"/>
+              <xs:pattern value="IF[0-9]+\-[0-9]+"/>
+              <xs:pattern value="IL[0-9]+"/>
+              <xs:pattern value="PSD13\-[0-9]+"/>
+              <xs:pattern value="RL[0-9]+"/>
+              <xs:pattern value="RL[0-9]+\-G"/>
+              <xs:pattern value="SD10\-[0-9]+"/>
+              <xs:pattern value="TD10\-[0-9]+"/>
+              <xs:pattern value="UL[0-9]+"/>
+              <xs:pattern value="VL[0-9]+"/>
+              <xs:pattern value="YPSD13\-[0-9]+"/>
+              <xs:pattern value="YSD10\-[0-9]+"/>
+              <xs:pattern value="YTD10\-[0-9]+"/>
+            </xs:restriction>
+          </value>
+        </property>
+      </requirements>
+    </specification>
+  </specifications>
+</ids>
