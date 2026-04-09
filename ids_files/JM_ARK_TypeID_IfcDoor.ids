@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ids xmlns="http://standards.buildingsmart.org/IDS"
+     xmlns:xs="http://www.w3.org/2001/XMLSchema"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd">
+  <info>
+    <title>JM ARK - Allowed TypeID for IfcDoor</title>
+    <description>Validates that IfcDoor elements have an allowed TypeID in Pset_JM. Generated from ARK requirements.</description>
+  </info>
+  <specifications>
+    <specification name="IfcDoor - Allowed TypeID" ifcVersion="IFC2X3">
+      <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity>
+          <name>
+            <simpleValue>IfcDoor</simpleValue>
+          </name>
+        </entity>
+      </applicability>
+      <requirements>
+        <property dataType="IFCLABEL" minOccurs="1" maxOccurs="1">
+          <propertySet>
+            <simpleValue>Pset_JM</simpleValue>
+          </propertySet>
+          <baseName>
+            <simpleValue>TypeID</simpleValue>
+          </baseName>
+          <value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="(BGV2|D9\-[0-9]+|FD\-D|FD\-DD|FD10\-[0-9]+|IF[0-9]+\-[0-9]+|IL[0-9]+|PSD13\-[0-9]+|RL[0-9]+|RL[0-9]+\-G|SD10\-[0-9]+|TD10\-[0-9]+|UL[0-9]+|VL[0-9]+|YPSD13\-[0-9]+|YSD10\-[0-9]+|YTD10\-[0-9]+)"/>
+            </xs:restriction>
+          </value>
+        </property>
+      </requirements>
+    </specification>
+  </specifications>
+</ids>

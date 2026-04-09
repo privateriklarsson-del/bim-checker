@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ids xmlns="http://standards.buildingsmart.org/IDS"
+     xmlns:xs="http://www.w3.org/2001/XMLSchema"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd">
+  <info>
+    <title>JM ARK - Allowed TypeID for IfcWindow</title>
+    <description>Validates that IfcWindow elements have an allowed TypeID in Pset_JM. Generated from ARK requirements.</description>
+  </info>
+  <specifications>
+    <specification name="IfcWindow - Allowed TypeID" ifcVersion="IFC2X3">
+      <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity>
+          <name>
+            <simpleValue>IfcWindow</simpleValue>
+          </name>
+        </entity>
+      </applicability>
+      <requirements>
+        <property dataType="IFCLABEL" minOccurs="1" maxOccurs="1">
+          <propertySet>
+            <simpleValue>Pset_JM</simpleValue>
+          </propertySet>
+          <baseName>
+            <simpleValue>TypeID</simpleValue>
+          </baseName>
+          <value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="(BGV1|F10\-[0-9]+|F15\-[0-9]+|F24\-[0-9]+|FF10\-[0-9]+|TF[0-9]+\-[0-9]+)"/>
+            </xs:restriction>
+          </value>
+        </property>
+      </requirements>
+    </specification>
+  </specifications>
+</ids>

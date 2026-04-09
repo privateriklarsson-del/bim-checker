@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ids xmlns="http://standards.buildingsmart.org/IDS"
+     xmlns:xs="http://www.w3.org/2001/XMLSchema"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd">
+  <info>
+    <title>JM ARK - Allowed TypeID for IfcWall</title>
+    <description>Validates that IfcWall elements have an allowed TypeID in Pset_JM. Generated from ARK requirements.</description>
+  </info>
+  <specifications>
+    <specification name="IfcWall - Allowed TypeID" ifcVersion="IFC2X3">
+      <applicability minOccurs="0" maxOccurs="unbounded">
+        <entity>
+          <name>
+            <simpleValue>IfcWall</simpleValue>
+          </name>
+        </entity>
+      </applicability>
+      <requirements>
+        <property dataType="IFCLABEL" minOccurs="1" maxOccurs="1">
+          <propertySet>
+            <simpleValue>Pset_JM</simpleValue>
+          </propertySet>
+          <baseName>
+            <simpleValue>TypeID</simpleValue>
+          </baseName>
+          <value>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="(EWP\-01|EWP\-02|EWP\-11|EWP\-12|EWP\-21|EWP\-22|EWP\-31|EWP\-32|EWP\-41|EWP\-42|EWP\-51|EWP\-52|EWP\-61|EWP\-62|EWW\-01XX|EWW\-02XX|EWW\-03XX|EWW\-04XX|EWW\-05XX|EWW\-06XX|EWW\-07XX|EWW\-08XX|EWW\-09XX|EWW\-10XX|EWW\-XX01|EWW\-XX02|EWW\-XX03|EWW\-XX04|EWW\-XX05|EWW\-XX06|EWW\-XX07|FD\-F|FD\-M|IWC|IWS\-01|IWS\-03|IWS\-03i|IWS\-06|IWS\-10|IWS\-103|IWS\-112|IWS\-117|IWS\-122|IWS\-123|IWS\-125|IWS\-13|IWS\-135|IWS\-13i|IWS\-145|IWS\-155|IWS\-16|IWS\-165|IWS\-166|IWS\-16i|IWS\-175|IWS\-185|IWS\-194|IWS\-198|IWS\-25|IWS\-25i|IWS\-26|IWS\-26i|IWS\-29|IWS\-29i|IWS\-35|IWS\-35i|IWS\-39|IWS\-39i|IWS\-40|IWS\-41|IWS\-44|IWS\-45|IWS\-54|IWS\-64|IWS\-73|IWS\-84|IWS\-85|IWS\-96|IWS\-97|IWS\-98|IWS\-99|IWW\-09|IWW\-10)"/>
+            </xs:restriction>
+          </value>
+        </property>
+      </requirements>
+    </specification>
+  </specifications>
+</ids>
